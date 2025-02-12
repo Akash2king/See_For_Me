@@ -7,7 +7,7 @@ from flask_cors import CORS  # Import CORS from flask_cors
 app = Flask(__name__)
 
 # Enable CORS for all domains
-CORS(app)  # This will allow all origins to make requests to your API
+CORS(app, resources={r"/*": {"origins": "*"}}) # This will allow all origins to make requests to your API
 
 # Configure the Gemini API key
 genai.configure(api_key="AIzaSyB4GgtY8Tkf6KeCx9CbkDykvSviN_bkmAg")
