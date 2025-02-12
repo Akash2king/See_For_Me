@@ -21,11 +21,23 @@ generation_config = {
     "response_mime_type": "text/plain",
 }
 
+prompt = '''
+        "I am a blind individual, and I would like you to assist me in understanding images by providing detailed, vivid, and sensory-rich descriptions. When I upload an image, please describe it as though you are guiding me through the scene in a natural and immersive way. Your description should include:
+
+        1. **Spatial Layout**: Describe the arrangement of objects, people, or elements in the scene, including approximate distances between them (e.g., 'a table is about three feet in front of you, with a chair to its left, two feet away').
+        2. **Visual Details**: Mention colors, shapes, sizes, and textures (e.g., 'a smooth, round red apple on a wooden table').
+        3. **Sensory Cues**: Include any implied sounds, smells, or tactile sensations that might be associated with the scene (e.g., 'the sound of leaves rustling in the wind' or 'the warm glow of sunlight filtering through a window').
+        4. **Context and Atmosphere**: Provide context about the setting, mood, or activity taking place (e.g., 'a bustling city street with people walking briskly and cars honking in the distance').
+        5. **Key Focal Points**: Highlight the most important or prominent elements in the image and their relationships to one another.
+
+        Your goal is to help me visualize the scene as if I were experiencing it myself, with a focus on clarity, detail, and natural flow. Avoid phrases like 'let me explain' or 'in the image'; simply describe the scene directly and vividly."
+        '''
+
 # Create the generative model
 model = genai.GenerativeModel(
     model_name="gemini-2.0-flash",
     generation_config=generation_config,
-    system_instruction="I am a blind person. When I upload an image, please describe it as though you are guiding me through the scene in a natural, detailed way. Your description should give me a sense of the scene’s layout, including approximate distances between objects or people, spatial arrangements, and any other details that would help me understand the image. Focus on providing vivid, sensory-rich information without needing to say 'let me explain.' Just describe the image directly, from sounds to textures, colors, and distances between elements, so I can visualize it as if I were experiencing it myself",
+    system_instruction=prompt
 )
 
 # Helper function to upload the image to Gemini
