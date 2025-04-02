@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import logging
 import os
 import requests
@@ -25,20 +25,25 @@ def upload_image():
         
         save_location = os.path.join(static_dir, "test.jpg")  # save location
         
-        f = open(save_location, 'wb')  # wb for write byte data in the file instead of string
-        f.write(image_raw_bytes)  # write the bytes from the request body to the file
-        f.close()
+        with open(save_location, 'wb') as f:  # wb for write byte data in the file instead of string
+            f.write(image_raw_bytes)  # write the bytes from the request body to the file
         
         logging.info("Image saved to %s", save_location)
         
         # Upload the image to Gemini API
         gemini_response = upload_to_gemini(save_location)
         
-        return jsonify({
+        response = jsonify({
             "status": "success",
             "message": "Image processed successfully",
             "gemini_response": gemini_response
         })
+        
+        # Delete the image after the response is generated
+        os.remove(save_location)
+        logging.info("Image deleted from %s", save_location)
+        
+        return response
     
     except Exception as e:
         logging.error("Error processing upload: %s", str(e))
@@ -54,6 +59,17 @@ def status():
         "status": "online",
         "message": "API server is running"
     })
+
+@app.route("/webpage", methods=["GET"])
+def serve_webpage():
+    try:
+        return send_from_directory(os.path.join(app.root_path, 'static'), 'index.html')
+    except Exception as e:
+        logging.error("Error serving webpage: %s", str(e))
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 def upload_to_gemini(image_path):
     try:
