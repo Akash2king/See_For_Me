@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, render_template
 import logging
 import os
 import requests
@@ -33,18 +33,12 @@ def upload_image():
         # Upload the image to Gemini API
         gemini_response = upload_to_gemini(save_location)
         
-        response = jsonify({
-            "status": "success",
-            "message": "Image processed successfully",
-            "gemini_response": gemini_response
-        })
-        
         # Delete the image after the response is generated
         os.remove(save_location)
         logging.info("Image deleted from %s", save_location)
-        
-        return response
-    
+
+        # Return response and render the webpage
+        return render_template("response.html", response=gemini_response)
     except Exception as e:
         logging.error("Error processing upload: %s", str(e))
         return jsonify({
@@ -54,7 +48,6 @@ def upload_image():
 
 @app.route("/status", methods=["GET"])
 def status():
-    # Simple status endpoint to check if the server is running
     return jsonify({
         "status": "online",
         "message": "API server is running"
@@ -71,34 +64,28 @@ def serve_webpage():
             "message": str(e)
         }), 500
 
+@app.route("/speakout", methods=["GET"])
+def speak_out():
+    return render_template("response.html", response="Click the button to speak out the response.")
+
+
 def upload_to_gemini(image_path):
     try:
-        # Replace with your actual Gemini API key
         api_key = "AIzaSyAk-WvOxFs38u391lWOhLAf0an-DT4QGxg"
-        
-        # Gemini API endpoint for the Vision model
         url = f"https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent?key={api_key}"
-        
-        # Read image and encode it in base64
         with open(image_path, "rb") as image_file:
             image_bytes = image_file.read()
             base64_encoded_image = base64.b64encode(image_bytes).decode('utf-8')
-        
-        # Prepare the request payload
         payload = {
-            "contents": [
-                {
-                    "parts": [
-                        {"text": "Describe this image in detail."},
-                        {
-                            "inline_data": {
-                                "mime_type": "image/jpeg",
-                                "data": base64_encoded_image
-                            }
-                        }
-                    ]
-                }
-            ],
+            "contents": [{
+                "parts": [
+                    {"text": "Describe this image in detail."},
+                    {"inline_data": {
+                        "mime_type": "image/jpeg",
+                        "data": base64_encoded_image
+                    }}
+                ]
+            }],
             "generationConfig": {
                 "temperature": 0.4,
                 "topK": 32,
@@ -106,25 +93,16 @@ def upload_to_gemini(image_path):
                 "maxOutputTokens": 4096
             }
         }
-        
-        # Send the request to Gemini API
         headers = {'Content-Type': 'application/json'}
         response = requests.post(url, headers=headers, data=json.dumps(payload))
-        
         if response.status_code == 200:
             result = response.json()
-            # Extract the text response from Gemini
             if 'candidates' in result and len(result['candidates']) > 0:
-                if 'content' in result['candidates'][0] and 'parts' in result['candidates'][0]['content']:
-                    for part in result['candidates'][0]['content']['parts']:
-                        if 'text' in part:
-                            return part['text']
-            
-            return json.dumps(result)  # Return full response if text extraction fails
+                return result['candidates'][0]['content']
+            return json.dumps(result)
         else:
             logging.error("Gemini API error: %s, %s", response.status_code, response.text)
             return f"Error from Gemini API: {response.status_code}, {response.text}"
-            
     except Exception as e:
         logging.error("Error in upload_to_gemini: %s", str(e))
         return f"Error processing image with Gemini: {str(e)}"
