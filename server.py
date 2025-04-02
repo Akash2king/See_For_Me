@@ -4,8 +4,10 @@ import os
 import requests
 import json
 import base64
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # This will allow all CORS requests
 
 logging.basicConfig(level=logging.DEBUG)  # for better debugging, we will log out every request with headers and body.
 
