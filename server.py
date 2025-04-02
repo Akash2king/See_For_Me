@@ -40,7 +40,7 @@ def upload_image():
         logging.info("Image deleted from %s", save_location)
 
         # Return response and render the webpage
-        return render_template("response.html", response=gemini_response)
+        return jsonify({"response":gemini_response}),200
     except Exception as e:
         logging.error("Error processing upload: %s", str(e))
         return jsonify({
