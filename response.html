@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Response Page</title>
+    <script>
+        function speakOut(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            speechSynthesis.speak(utterance);
+        }
+    </script>
+</head>
+<body>
+    <h1>Image Response</h1>
+    <p id="response">{{ response }}</p>
+    <button onclick="speakOut(document.getElementById('response').innerText)">Speak Out</button>
+</body>
+</html>
